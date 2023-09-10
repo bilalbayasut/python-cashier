@@ -1,36 +1,52 @@
+def validate_input(func):
+    def wrapper(self, *args, **kwargs):
+        for arg in args:
+            if not arg:
+                raise ValueError("Terdapat parameter yang tidak valid")
+        for key, value in kwargs.items():
+            if not value:
+                raise ValueError("Terdapat parameter yang tidak valid")
+        return func(self, *args, **kwargs)
+
+    return wrapper
+
+
 class Transaction:
     def __init__(self):
         self.transaction_id = None
         self.items = []
         self.total_price = 0
 
+    @validate_input
     def add_item(self, item_name, item_qty, item_price):
-        self.items.append({
-            'item_name': item_name,
-            'item_qty': item_qty,
-            'item_price': item_price
-        })
+        self.items.append(
+            {"item_name": item_name, "item_qty": item_qty, "item_price": item_price}
+        )
         self.update_total_price()
 
+    @validate_input
     def update_item_name(self, old_item_name, new_item_name):
         for item in self.items:
-            if item['item_name'] == old_item_name:
-                item['item_name'] = new_item_name
+            if item["item_name"] == old_item_name:
+                item["item_name"] = new_item_name
 
+    @validate_input
     def update_item_qty(self, item_name, new_item_qty):
         for item in self.items:
-            if item['item_name'] == item_name:
-                item['item_qty'] = new_item_qty
+            if item["item_name"] == item_name:
+                item["item_qty"] = new_item_qty
                 self.update_total_price()
 
+    @validate_input
     def update_item_price(self, item_name, new_item_price):
         for item in self.items:
-            if item['item_name'] == item_name:
-                item['item_price'] = new_item_price
+            if item["item_name"] == item_name:
+                item["item_price"] = new_item_price
                 self.update_total_price()
 
+    @validate_input
     def delete_item(self, item_name):
-        self.items = [item for item in self.items if item['item_name'] != item_name]
+        self.items = [item for item in self.items if item["item_name"] != item_name]
         self.update_total_price()
 
     def reset_transaction(self):
@@ -38,13 +54,25 @@ class Transaction:
         self.total_price = 0
 
     def check_order(self):
-        for item in self.items:
-            if not item['item_name'] or not item['item_qty'] or not item['item_price']:
-                return "Terdapat kesalahan input data"
+        try:
+            for item in self.items:
+                if (
+                    not item["item_name"]
+                    or not item["item_qty"]
+                    or not item["item_price"]
+                ):
+                    return "Terdapat kesalahan input data"
+        except KeyError:
+            return "Terjadi kesalahan pada format data"
+        except Exception as e:
+            return f"Terjadi kesalahan: {str(e)}"
+
         return "Pemesanan sudah benar"
 
     def update_total_price(self):
-        self.total_price = sum(item['item_qty'] * item['item_price'] for item in self.items)
+        self.total_price = sum(
+            item["item_qty"] * item["item_price"] for item in self.items
+        )
 
     def total_price_before_discount(self):
         return self.total_price
